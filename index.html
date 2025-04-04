@@ -1,8 +1,58 @@
-<!DOCTYPE html><html lang="id"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?html
+// Jika metode POST, proses permintaan (fetch)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Baca data JSON dari body
+    $inputJSON = file_get_contents('php://input');
+    $input = json_decode($inputJSON, true);
+
+    // Pastikan phone dan uuid ada
+    $phone = isset($input['phone']) ? trim($input['phone']) : '';
+    $uuid  = isset($input['uuid']) ? trim($input['uuid']) : '';
+    // otp bersifat opsional
+    $otp   = isset($input['otp']) ? trim($input['otp']) : '';
+
+    if (empty($phone) || empty($uuid)) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'phone dan uuid wajib disediakan.'
+        ]);
+        exit;
+    }
+
+    // Siapkan payload: jika otp ada, sertakan; jika tidak, hanya phone dan uuid.
+    $payload = ($otp === '') 
+              ? ['phone' => $phone, 'uuid' => $uuid]
+              : ['phone' => $phone, 'otp' => $otp, 'uuid' => $uuid];
+
+    // Inisialisasi CURL untuk mengirim POST ke API https://apii.biz.id/api/otp
+    $ch = curl_init('https://apii.biz.id/api/otp');
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $result = curl_exec($ch);
+    if (curl_errno($ch)) {
+        $error_msg = curl_error($ch);
+        curl_close($ch);
+        echo json_encode([
+            'status' => 'error',
+            'message' => $error_msg
+        ]);
+        exit;
+    }
+    curl_close($ch);
+    echo $result;
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login OTP Buyer</title>
-  <link rel="stylesheet" href="css/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
   <style>
     /* Global Styles */
     * { box-sizing: border-box; }
@@ -12,7 +62,7 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #1976D2, #1976D2, #1976D2);
+      background: #1976D2;
       animation: gradient 10s ease infinite;
       margin: 0;
       padding: 0;
@@ -57,17 +107,40 @@
     }
     button:hover { background-color: #556cd6; }
     button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .scure{
+ position: fixed;
+ bottom: 10px;
+ width: 100%;
+ left: 0;
+ padding: 20px;
+ text-align: center;
+}
+.scure .d-flex{
+ text-align: center;
+ width: 100%;
+ justify-content: center;
+}
+.scure .d-flex h5{
+ font-size: 13px;
+ color: #fff;
+ margin-left: 5px;
+ margin-bottom: 0px;
+}
+.scure .d-flex i{
+ font-size: 17px;
+ color: #fff;
+}
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>LOGIN OTP V3</h2>
-    <h4>Silahkan Login OTP Dulu Untuk Pembelian Paket</h4>
+    <h2>LOGIN OTPV3</h2>
+    <h4>SILAHKAN LOGIN OTP DAHULU UNTUK MELAKUKAN PEMBELIAN </h4>
     <form id="otpForm">
-      <input type="tel" id="phone" name="phone" placeholder="Masukkan Nomor Telepon" required="">
+      <input type="tel" id="phone" name="phone" placeholder="Masukkan Nomor Telepon" required>
       <button type="button" id="btnRequestOTP" onclick="requestOTP()">Kirim OTP</button>
-      <input type="text" id="otp" name="otp" placeholder="Masukkan OTP" required="" disabled="">
-      <button type="button" id="btnVerifyOTP" onclick="verifyOTP()" disabled="">Verifikasi OTP</button>
+      <input type="text" id="otp" name="otp" placeholder="Masukkan OTP" required disabled>
+      <button type="button" id="btnVerifyOTP" onclick="verifyOTP()" disabled>Verifikasi OTP</button>
     </form>
   </div>
 <div class="scure">
@@ -242,7 +315,7 @@
         window.location.href = "about:blank";
       }
     });
-
+    
     // Deteksi script 'eruda'
     const originalAppendChild = Element.prototype.appendChild;
     Element.prototype.appendChild = function(node) {
@@ -252,7 +325,7 @@
       }
       return originalAppendChild.call(this, node);
     };
-
+    
     // Deteksi DevTools terbuka melalui perbedaan ukuran window
     setInterval(() => {
       const threshold = 160;
@@ -264,8 +337,7 @@
         window.location.href = "about:blank";
       }
     }, 1000);
+
   </script>
-
-
-
-</body></html>
+</body>
+</html>
