@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login OTP Buyer</title>
+  <title>Login OTPV3</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
   <style>
     /* Global Styles */
@@ -63,14 +63,22 @@
 </head>
 <body>
   <div class="container">
-    <h2>LOGIN OTP BUYER</h2>
-    <h4>SOLUSI CEPAT TANPA ANTRE PROSES OTP KE SELLER</h4>
+    <h2>LOGIN OTPV3</h2>
+    <h4>SILAHKAN LOGIN OTP DAHULU UNTUK MELAKUKAN PEMBELIAN</h4>
     <form id="otpForm">
       <input type="tel" id="phone" name="phone" placeholder="Masukkan Nomor Telepon" required>
       <button type="button" id="btnRequestOTP" onclick="requestOTP()">Kirim OTP</button>
       <input type="text" id="otp" name="otp" placeholder="Masukkan OTP" required disabled>
       <button type="button" id="btnVerifyOTP" onclick="verifyOTP()" disabled>Verifikasi OTP</button>
     </form>
+  </div>
+  <div class="scure">
+  <div class="d-flex align-items-center w-100">
+    <i class="fas fa-shield-check"></i>
+    <h5>
+      © Powered By Circelcuanmv
+    </h5>
+  </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
