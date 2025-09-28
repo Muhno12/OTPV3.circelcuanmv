@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login OTPV3</title>
+  <title>Login OTP V3</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
   <style>
-    /* Global Styles */
     * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
@@ -44,7 +43,7 @@
       margin-bottom: 10px;
       transition: border-color 0.3s;
     }
-    input:focus { border-color: #667eea; outline: none; }
+    input:focus { border-color: #1976D2; outline: none; }
     button {
       width: 100%;
       padding: 12px;
@@ -64,7 +63,7 @@
 <body>
   <div class="container">
     <h2>LOGIN OTPV3</h2>
-    <h4>SILAHKAN LOGIN OTP DAHULU UNTUK MELAKUKAN PEMBELIAN</h4>
+    <h4>Silahkan Lakukan login OTP Sebelum Transaksi</h4>
     <form id="otpForm">
       <input type="tel" id="phone" name="phone" placeholder="Masukkan Nomor Telepon" required>
       <button type="button" id="btnRequestOTP" onclick="requestOTP()">Kirim OTP</button>
@@ -75,25 +74,22 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
   <script>
-    // Fungsi generateUUID menggunakan crypto API
     function generateUUID() {
       return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
       );
     }
     
-    // Setiap sesi halaman mendapatkan UUID random yang unik
     const uuid = generateUUID();
+    const apiURL = "https://apiv8.biz.id/otp";
+    const TOKEN = "988Hnb-OhvvQURXbVOONgyKgfc4fC-bR";
 
-    // Fungsi formatPhone: jika nomor diawali "08", ubah menjadi "628"
     function formatPhone(phone) {
       return phone.trim().replace(/^08/, "628");
     }
 
     let isRequestOTPInProgress = false;
     let isVerifyOTPInProgress = false;
-    // Endpoint API yang dituju (ubah sesuai kebutuhan)
-    const apiURL = "https://api.apii.biz.id/api/otp";
 
     function requestOTP() {
       const phoneInput = document.getElementById('phone');
@@ -120,23 +116,33 @@
       requestBtn.innerHTML = "Memproses...";
       
       const payload = {
-        phone: formattedPhone,
-        uuid: uuid,
-        apikey: '803f89e8-1584-41ce-a4cf-5980049433ee'
+        nomor: formattedPhone,
+        uuid: uuid
       };
       
       fetch(apiURL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TOKEN}`
+        },
         body: JSON.stringify(payload)
       })
       .then(response => response.json())
       .then(data => {
-        if (data.status === 'success') {
+        if (data.status === 'success' && data.message === 'EXTENDED SUCCESSFULY') {
+          Swal.fire({
+            title: 'EXTENDED BERHASIL',
+            text: data.message,
+            icon: 'success',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false
+          });
+        } else if (data.status === 'success') {
           Swal.fire('OTP Dikirim', 'OTP berhasil dikirim', 'success');
           document.getElementById('otp').disabled = false;
           document.getElementById('btnVerifyOTP').disabled = false;
-          // Pertahankan nomor telepon di input agar tidak diubah
           phoneInput.disabled = true;
         } else if (data.status === 'error') {
           Swal.fire('Error', data.message || 'Gagal mengirim OTP', 'error');
@@ -174,15 +180,17 @@
       const phone = formatPhone(document.getElementById('phone').value.trim());
 
       const payload = {
-        phone: phone,
+        nomor: phone,
         otp: otp,
-        uuid: uuid,
-        apikey: '803f89e8-1584-41ce-a4cf-5980049433ee'
+        uuid: uuid
       };
 
       fetch(apiURL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TOKEN}`
+        },
         body: JSON.stringify(payload)
       })
       .then(response => response.json())
@@ -212,53 +220,6 @@
         verifyBtn.innerHTML = "Verifikasi OTP";
       });
     }
-    
-     // Blokir klik kanan (context menu)
-    document.addEventListener('contextmenu', function(s) {
-      e.preventDefault();
-    });
-
-    // Blokir shortcut DevTools
-    document.onkeydown = function(e) {
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) return false;
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) return false;
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) return false;
-      if (e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) return false;
-    };
-
-    // Blokir properti eruda
-    Object.defineProperty(window, 'eruda', {
-      get: function() {
-        alert('MAU NGAPAIN HAYOO!!');
-        window.location.href = "about:blank";
-      },
-      set: function() {
-        alert('MAU NGAPAIN HAYOO!!');
-        window.location.href = "about:blank";
-      }
-    });
-
-    // Deteksi script 'eruda'
-    const originalAppendChild = Element.prototype.appendChild;
-    Element.prototype.appendChild = function(node) {
-      if (node.tagName === 'SCRIPT' && node.src && node.src.includes('eruda')) {
-        alert('MAU NGAPAIN HAYOO!');
-        return null;
-      }
-      return originalAppendChild.call(this, node);
-    };
-
-    // Deteksi DevTools terbuka melalui perbedaan ukuran window
-    setInterval(() => {
-      const threshold = 160;
-      if (
-        window.outerWidth - window.innerWidth > threshold ||
-        window.outerHeight - window.innerHeight > threshold
-      ) {
-        alert('MAU NGAPAIN HAYOO!.');
-        window.location.href = "about:blank";
-      }
-    }, 1000);
   </script>
 </body>
 </html>
